@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমার গেমিং ওয়েবসাইট - টিক-ট্যাক-টো</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .cell {
+            aspect-ratio: 1/1;
+            background-color: #fff;
+            border: 2px solid #2c3e50;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .cell.x {
+            color: #e74c3c;
+        }
+        
+        .cell.o {
+            color: #3498db;
+        }
+        
+        .status {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            height: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+        }
+        
+        button {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #1a252f;
+        }
+        
+        @media (max-width: 500px) {
+            .game-container {
+                padding: 10px;
+            }
+            
+            .cell {
+                font-size: 2.5rem;
+            }
+            
+            .status {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>টিক-ট্যাক-টো গেম</h1>
+    
+    <div class="game-container">
+        <div class="status" id="status">X-এর পালা</div>
+        
+        <div class="game-board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="reset">গেম রিসেট করুন</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const cells = document.querySelectorAll('.cell');
+            const status = document.getElementById('status');
+            const resetButton = document.getElementById('reset');
+            
+            let currentPlayer = 'X';
+            let gameState = ['', '', '', '', '', '', '', '', ''];
+            let gameActive = true;
+            
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6]             // diagonals
+            ];
+            
+            // Handle cell click/touch
+            function handleCellClick(e) {
+                const clickedCell = e.target;
+                const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+                
+                if (gameState[clickedCellIndex] !== '' || !gameActive) {
+                    return;
+                }
+                
+                gameState[clickedCellIndex] = currentPlayer;
+                clickedCell.classList.add(currentPlayer.toLowerCase());
+                clickedCell.textContent = currentPlayer;
+                
+                checkResult();
+            }
+            
+            // Check for win or draw
+            function checkResult() {
+                let roundWon = false;
+                
+                for (let i = 0; i < winningConditions.length; i++) {
+                    const [a, b, c] = winningConditions[i];
+                    
+                    if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') {
+                        continue;
+                    }
+                    
+                    if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+                        roundWon = true;
+                        break;
+                    }
+                }
+                
+                if (roundWon) {
+                    status.textContent = `${currentPlayer} জিতেছে!`;
+                    gameActive = false;
+                    return;
+                }
+                
+                if (!gameState.includes('')) {
+                    status.textContent = 'খেলা ড্র!';
+                    gameActive = false;
+                    return;
+                }
+                
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `${currentPlayer}-এর পালা`;
+            }
+            
+            // Reset game
+            function resetGame() {
+                currentPlayer = 'X';
+                gameState = ['', '', '', '', '', '', '', '', ''];
+                gameActive = true;
+                status.textContent = `${currentPlayer}-এর পালা`;
+                
+                cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('x', 'o');
+                });
+            }
+            
+            // Event listeners
+            cells.forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+                cell.addEventListener('touchstart', handleCellClick, { passive: true });
+            });
+            
+            resetButton.addEventListener('click', resetGame);
+        });
+    </script>
+</body>
+</html>
