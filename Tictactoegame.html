@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            transition: background-color 0.5s;
+        }
+        
+        .game-container {
+            max-width: 500px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .cell {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 640px) {
+            .cell {
+                font-size: 2rem;
+            }
+            
+            .game-container {
+                max-width: 100%;
+                padding: 12px;
+            }
+            
+            .board {
+                gap: 8px;
+            }
+        }
+        
+        @media (max-width: 380px) {
+            .cell {
+                font-size: 1.5rem;
+            }
+            
+            .score-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .x {
+            color: #e74c3c;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .o {
+            color: #3498db;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .win {
+            background-color: rgba(46, 204, 113, 0.2);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .turn-indicator {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-card {
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f2d74e;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="py-8 px-4">
+    <div class="game-container mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">Tic Tac Toe</h1>
+        <p class="text-center text-gray-600 mb-6">Challenge your friend to a game!</p>
+        
+        <div id="turn-display" class="turn-indicator bg-blue-100 text-blue-800 text-center mb-6">
+            Player <span id="current-player">X</span>'s turn
+        </div>
+        
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        
+        <div class="flex justify-center mb-6">
+            <button id="reset-btn" class="btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                <i class="fas fa-redo mr-2"></i>New Game
+            </button>
+        </div>
+        
+        <div class="score-grid grid grid-cols-3 sm:grid-cols-3 gap-4 mt-8">
+            <div class="score-card bg-red-100 p-4 text-center rounded-lg">
+                <h3 class="text-red-800 font-bold text-lg">Player X</h3>
+                <p class="text-2xl font-bold text-red-600" id="score-x">0</p>
+            </div>
+            
+            <div class="score-card bg-gray-100 p-4 text-center rounded-lg">
+                <h3 class="text-gray-800 font-bold text-lg">Ties</h3>
+                <p class="text-2xl font-bold text-gray-600" id="score-ties">0</p>
+            </div>
+            
+            <div class="score-card bg-blue-100 p-4 text-center rounded-lg">
+                <h3 class="text-blue-800 font-bold text-lg">Player O</h3>
+                <p class="text-2xl font-bold text-blue-600" id="score-o">0</p>
+            </div>
+        </div>
+        
+        <div id="game-message" class="mt-6 py-3 px-4 rounded-lg text-center hidden">
+            Game over! <span id="winner-message"></span>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const cells = document.querySelectorAll('.cell');
+            const turnDisplay = document.getElementById('turn-display');
+            const currentPlayerSpan = document.getElementById('current-player');
+            const resetBtn = document.getElementById('reset-btn');
+            const scoreX = document.getElementById('score-x');
+            const scoreO = document.getElementById('score-o');
+            const scoreTies = document.getElementById('score-ties');
+            const gameMessage = document.getElementById('game-message');
+            const winnerMessage = document.getElementById('winner-message');
+            
+            let currentPlayer = 'X';
+            let gameBoard = ['', '', '', '', '', '', '', '', ''];
+            let gameActive = true;
+            let scores = {
+                X: 0,
+                O: 0,
+                Ties: 0
+            };
+            
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+            
+            // Initialize game
+            function initGame() {
+                gameBoard = ['', '', '', '', '', '', '', '', ''];
+                gameActive = true;
+                currentPlayer = 'X';
+                currentPlayerSpan.textContent = currentPlayer;
+                
+                updateTurnIndicator();
+                
+                cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('x', 'o', 'win');
+                    cell.style.cursor = 'pointer';
+                });
+                
+                gameMessage.classList.add('hidden');
+            }
+            
+            // Handle cell click
+            function handleCellClick(clickedCellEvent) {
+                const clickedCell = clickedCellEvent.target;
+                const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+                
+                if (gameBoard[clickedCellIndex] !== '' || !gameActive) {
+                    return;
+                }
+                
+                gameBoard[clickedCellIndex] = currentPlayer;
+                clickedCell.textContent = currentPlayer;
+                clickedCell.classList.add(currentPlayer.toLowerCase());
+                
+                checkWin();
+            }
+            
+            // Check for win
+            function checkWin() {
+                let roundWon = false;
+                let winCells = [];
+                
+                for (let i = 0; i < winningCombinations.length; i++) {
+                    const [a, b, c] = winningCombinations[i];
+                    const position1 = gameBoard[a];
+                    const position2 = gameBoard[b];
+                    const position3 = gameBoard[c];
+                    
+                    if (position1 === '' || position2 === '' || position3 === '') {
+                        continue;
+                    }
+                    
+                    if (position1 === position2 && position2 === position3) {
+                        roundWon = true;
+                        winCells = [a, b, c];
+                        break;
+                    }
+                }
+                
+                if (roundWon) {
+                    highlightWinCells(winCells);
+                    gameActive = false;
+                    
+                    scores[currentPlayer]++;
+                    updateScores();
+                    
+                    gameMessage.classList.remove('hidden');
+                    gameMessage.classList.add('bg-green-100', 'text-green-800');
+                    winnerMessage.textContent = `Player ${currentPlayer} wins!`;
+                    
+                    celebrateWin();
+                    return;
+                }
+                
+                if (checkDraw()) {
+                    gameActive = false;
+                    scores.Ties++;
+                    updateScores();
+                    
+                    gameMessage.classList.remove('hidden');
+                    gameMessage.classList.add('bg-gray-100', 'text-gray-800');
+                    winnerMessage.textContent = "It's a draw!";
+                    return;
+                }
+                
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                currentPlayerSpan.textContent = currentPlayer;
+                updateTurnIndicator();
+            }
+            
+            // Check for draw
+            function checkDraw() {
+                return !gameBoard.includes('');
+            }
+            
+            // Highlight winning cells
+            function highlightWinCells(cells) {
+                for (let i = 0; i < cells.length; i++) {
+                    document.querySelector(`[data-index="${cells[i]}"]`).classList.add('win');
+                }
+            }
+            
+            // Update scores display
+            function updateScores() {
+                scoreX.textContent = scores.X;
+                scoreO.textContent = scores.O;
+                scoreTies.textContent = scores.Ties;
+            }
+            
+            // Update turn indicator
+            function updateTurnIndicator() {
+                if (currentPlayer === 'X') {
+                    turnDisplay.classList.remove('bg-blue-100', 'text-blue-800');
+                    turnDisplay.classList.add('bg-red-100', 'text-red-800');
+                } else {
+                    turnDisplay.classList.remove('bg-red-100', 'text-red-800');
+                    turnDisplay.classList.add('bg-blue-100', 'text-blue-800');
+                }
+            }
+            
+            // Create confetti effect for win celebration
+            function celebrateWin() {
+                const colors = ['#f2d74e', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+                
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    document.body.appendChild(confetti);
+                    
+                    // Random position
+                    const startPosX = Math.random() * window.innerWidth;
+                    const startPosY = -20;
+                    
+                    // Random size
+                    const size = Math.random() * 10 + 5;
+                    
+                    // Random color
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Apply styles
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.backgroundColor = color;
+                    confetti.style.left = `${startPosX}px`;
+                    confetti.style.top = `${startPosY}px`;
+                    
+                    // Animate
+                    const animationDuration = Math.random() * 3 + 2;
+                    const endPosY = window.innerHeight + 20;
+                    const endPosX = startPosX + (Math.random() * 200 - 100);
+                    
+                    confetti.style.animation = `
+                        fadeIn 0.3s ease forwards,
+                        fall ${animationDuration}s ease-in forwards,
+                        sway ${animationDuration * 0.5}s ease-in-out infinite alternate
+                    `;
+                    
+                    confetti.style.opacity = '0';
+                    confetti.style.transform = 'rotate(0deg)';
+                    
+                    // Use keyframes for the animation
+                    const keyframes = `
+                        @keyframes fall {
+                            to { transform: translate(${endPosX - startPosX}px, ${endPosY}px) rotate(${Math.random() * 360}deg); }
+                        }
+                        @keyframes sway {
+                            from { margin-left: 0; }
+                            to { margin-left: ${Math.random() * 50 - 25}px; }
+                        }
+                    `;
+                    
+                    // Add style element with keyframes
+                    const styleElement = document.createElement('style');
+                    styleElement.innerHTML = keyframes;
+                    document.head.appendChild(styleElement);
+                    
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                        styleElement.remove();
+                    }, animationDuration * 1000);
+                }
+            }
+            
+            // Event listeners
+            cells.forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+            
+            resetBtn.addEventListener('click', initGame);
+            
+            // Initial setup
+            initGame();
+        });
+    </script>
+</body>
+</html>

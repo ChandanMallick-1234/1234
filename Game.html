@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spend The Billionaire's Money</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .money-display {
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            transition: all 0.3s ease;
+        }
+        .item-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .receipt-item {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .buy-btn, .sell-btn {
+            transition: all 0.2s ease;
+        }
+        .buy-btn:hover, .sell-btn:hover {
+            transform: scale(1.05);
+        }
+        .buy-btn:active, .sell-btn:active {
+            transform: scale(0.95);
+        }
+        .money-change {
+            position: fixed;
+            color: white;
+            font-weight: bold;
+            pointer-events: none;
+            animation: float 1.5s ease-out forwards;
+            text-shadow: 0 0 4px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        @keyframes float {
+            0% {
+                opacity: 0;
+                transform: translateY(0);
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px);
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .progress-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #ff416c 0%, #ff4b2b 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+    <!-- Money Display Header (fixed at top) -->
+    <div class="sticky top-0 z-50 w-full">
+        <div class="money-display text-white py-4 px-6 shadow-lg">
+            <div class="container mx-auto">
+                <h1 class="text-3xl md:text-4xl font-bold text-center mb-2">Spend Elon's $200 Billion</h1>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-lg">Money Spent: <span id="spent-amount" class="font-bold">$0</span></p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl md:text-3xl font-bold" id="money-remaining">$200,000,000,000</p>
+                        <p class="text-sm">remaining</p>
+                    </div>
+                    <div>
+                        <p class="text-lg">Items Bought: <span id="items-count" class="font-bold">0</span></p>
+                    </div>
+                </div>
+                <div class="w-full bg-white bg-opacity-20 rounded-full mt-2">
+                    <div class="progress-bar rounded-full" id="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="items-container">
+            <!-- Items will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Your Receipt</h2>
+                    <button id="close-receipt" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="border-t border-b border-gray-200 py-4 mb-4">
+                    <div id="receipt-items" class="space-y-2">
+                        <!-- Receipt items will be added here -->
+                    </div>
+                </div>
+                <div class="flex justify-between font-bold text-lg">
+                    <span>Total Spent:</span>
+                    <span id="receipt-total">$0</span>
+                </div>
+                <div class="flex justify-between text-lg mt-2">
+                    <span>Remaining:</span>
+                    <span id="receipt-remaining">$200,000,000,000</span>
+                </div>
+                <div class="mt-6 flex justify-center">
+                    <button id="restart-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105">
+                        Start Over
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Receipt Button -->
+    <div class="fixed bottom-6 right-6">
+        <button id="view-receipt-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+            <i class="fas fa-receipt mr-2"></i> View Receipt
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialMoney = 200000000000; // $200 billion
+            let remainingMoney = initialMoney;
+            let itemsPurchased = {};
+            let totalItemsCount = 0;
+
+            // Items data - price in dollars
+            const items = [
+                {
+                    id: 1,
+                    name: "Cup of Coffee",
+                    price: 5,
+                    image: "https://iili.io/312KFTl.jpg"
+                },
+                {
+                    id: 2,
+                    name: "Pair of Sneakers",
+                    price: 100,
+                    image: "https://iili.io/31YX6fs.jpg"
+                },
+                {
+                    id: 3,
+                    name: "Smartphone",
+                    price: 1000,
+                    image: "https://iili.io/31YOvoB.webp"
+                },
+                {
+                    id: 4,
+                    name: "Gaming Console",
+                    price: 500,
+                    image: "https://iili.io/31YCxlR.jpg"
+                },
+                {
+                    id: 5,
+                    name: "Designer Handbag",
+                    price: 5000,
+                    image: "https://iili.io/31YCzSp.jpg"
+                },
+                {
+                    id: 6,
+                    name: "Luxury Watch",
+                    price: 15000,
+                    image: "https://iili.io/31YC1Ul.jpg"
+                },
+                {
+                    id: 7,
+                    name: "Electric Car",
+                    price: 75000,
+                    image: "https://iili.io/31YCTHN.jpg"
+                },
+                {
+                    id: 8,
+                    name: "Luxury Yacht",
+                    price: 10000000,
+                    image: "https://iili.io/31YCuRI.jpg"
+                },
+                {
+                    id: 9,
+                    name: "Private Jet",
+                    price: 50000000,
+                    image: "https://iili.io/31YCRDX.jpg"
+                },
+                {
+                    id: 10,
+                    name: "Skyscraper",
+                    price: 500000000,
+                    image: "https://iili.io/31YXrsn.jpg"
+                },
+                {
+                    id: 11,
+                    name: "Super Yacht",
+                    price: 300000000,
+                    image: "https://iili.io/31YCANt.jpg"
+                },
+                {
+                    id: 12,
+                    name: "Private Island",
+                    price: 100000000,
+                    image: "https://iili.io/31YXP0G.jpg"
+                },
+                {
+                    id: 13,
+                    name: "Space Rocket",
+                    price: 2000000000,
+                    image: "https://iili.io/31YC7xn.jpg"
+                },
+                {
+                    id: 14,
+                    name: "Major Sports Team",
+                    price: 2500000000,
+                    image: "https://iili.io/31VBqX4.jpg"
+                },
+                {
+                    id: 15,
+                    name: "Social Media Company",
+                    price: 10000000000,
+                    image: "https://iili.io/31YClff.jpg"
+                }
+            ];
+
+            // Format number as currency
+            function formatMoney(amount) {
+                return new Intl.NumberFormat('en-US', { 
+                    style: 'currency', 
+                    currency: 'USD',
+                    maximumFractionDigits: 0
+                }).format(amount);
+            }
+
+            // Update money display
+            function updateMoneyDisplay() {
+                document.getElementById('money-remaining').textContent = formatMoney(remainingMoney);
+                document.getElementById('spent-amount').textContent = formatMoney(initialMoney - remainingMoney);
+                document.getElementById('items-count').textContent = totalItemsCount;
+                
+                const progressPercentage = ((initialMoney - remainingMoney) / initialMoney) * 100;
+                document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+            }
+
+            // Create money animation
+            function createMoneyAnimation(amount, x, y, isSpending) {
+                const element = document.createElement('div');
+                element.className = 'money-change text-xl';
+                element.style.left = `${x}px`;
+                element.style.top = `${y}px`;
+                
+                if (isSpending) {
+                    element.textContent = `-${formatMoney(amount)}`;
+                    element.style.color = '#ff4b2b';
+                } else {
+                    element.textContent = `+${formatMoney(amount)}`;
+                    element.style.color = '#38ef7d';
+                }
+                
+                document.body.appendChild(element);
+                
+                setTimeout(() => {
+                    element.remove();
+                }, 1500);
+            }
+
+            // Create items grid
+            function createItemsGrid() {
+                const container = document.getElementById('items-container');
+                
+                items.forEach(item => {
+                    // Initialize item count in purchased items
+                    itemsPurchased[item.id] = 0;
+                    
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'item-card bg-white rounded-lg shadow-md overflow-hidden';
+                    
+                    itemCard.innerHTML = `
+                        <div class="h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
+                            <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-xl font-semibold mb-2">${item.name}</h3>
+                            <p class="text-blue-600 font-bold text-lg mb-3">${formatMoney(item.price)}</p>
+                            <div class="flex items-center justify-between">
+                                <button class="sell-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full disabled:opacity-50 disabled:cursor-not-allowed" data-id="${item.id}" disabled>
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="text-lg font-semibold item-count" data-id="${item.id}">0</span>
+                                <button class="buy-btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full" data-id="${item.id}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(itemCard);
+                });
+                
+                // Add event listeners for buy buttons
+                document.querySelectorAll('.buy-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        const itemId = parseInt(this.getAttribute('data-id'));
+                        const item = items.find(i => i.id === itemId);
+                        
+                        if (remainingMoney >= item.price) {
+                            // Purchase item
+                            remainingMoney -= item.price;
+                            itemsPurchased[itemId]++;
+                            totalItemsCount++;
+                            
+                            // Update display
+                            document.querySelector(`.item-count[data-id="${itemId}"]`).textContent = itemsPurchased[itemId];
+                            updateMoneyDisplay();
+                            
+                            // Enable sell button
+                            document.querySelector(`.sell-btn[data-id="${itemId}"]`).disabled = false;
+                            
+                            // Create money animation
+                            const rect = this.getBoundingClientRect();
+                            createMoneyAnimation(item.price, rect.x, rect.y, true);
+                        } else {
+                            // Show "not enough money" feedback
+                            this.classList.add('bg-gray-500');
+                            this.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            
+                            setTimeout(() => {
+                                this.classList.remove('bg-gray-500');
+                                this.classList.add('bg-green-500', 'hover:bg-green-600');
+                            }, 500);
+                        }
+                    });
+                });
+                
+                // Add event listeners for sell buttons
+                document.querySelectorAll('.sell-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        const itemId = parseInt(this.getAttribute('data-id'));
+                        const item = items.find(i => i.id === itemId);
+                        
+                        if (itemsPurchased[itemId] > 0) {
+                            // Sell item
+                            remainingMoney += item.price;
+                            itemsPurchased[itemId]--;
+                            totalItemsCount--;
+                            
+                            // Update display
+                            document.querySelector(`.item-count[data-id="${itemId}"]`).textContent = itemsPurchased[itemId];
+                            updateMoneyDisplay();
+                            
+                            // Disable sell button if no items left
+                            if (itemsPurchased[itemId] === 0) {
+                                this.disabled = true;
+                            }
+                            
+                            // Create money animation
+                            const rect = this.getBoundingClientRect();
+                            createMoneyAnimation(item.price, rect.x, rect.y, false);
+                        }
+                    });
+                });
+            }
+
+            // Generate receipt
+            function generateReceipt() {
+                const receiptItems = document.getElementById('receipt-items');
+                receiptItems.innerHTML = '';
+                
+                let anyItemsPurchased = false;
+                
+                items.forEach(item => {
+                    if (itemsPurchased[item.id] > 0) {
+                        anyItemsPurchased = true;
+                        const totalForItem = item.price * itemsPurchased[item.id];
+                        
+                        const receiptItem = document.createElement('div');
+                        receiptItem.className = 'receipt-item flex justify-between';
+                        receiptItem.innerHTML = `
+                            <div>
+                                <span class="font-medium">${item.name}</span>
+                                <span class="text-gray-600 ml-2">x ${itemsPurchased[item.id]}</span>
+                            </div>
+                            <span>${formatMoney(totalForItem)}</span>
+                        `;
+                        
+                        receiptItems.appendChild(receiptItem);
+                    }
+                });
+                
+                if (!anyItemsPurchased) {
+                    receiptItems.innerHTML = '<p class="text-center text-gray-500 py-4">You haven\'t purchased any items yet.</p>';
+                }
+                
+                document.getElementById('receipt-total').textContent = formatMoney(initialMoney - remainingMoney);
+                document.getElementById('receipt-remaining').textContent = formatMoney(remainingMoney);
+                document.getElementById('receipt-modal').classList.remove('hidden');
+            }
+
+            // Show receipt
+            document.getElementById('view-receipt-btn').addEventListener('click', generateReceipt);
+            
+            // Close receipt
+            document.getElementById('close-receipt').addEventListener('click', function() {
+                document.getElementById('receipt-modal').classList.add('hidden');
+            });
+            
+            // Reset game
+            document.getElementById('restart-btn').addEventListener('click', function() {
+                remainingMoney = initialMoney;
+                itemsPurchased = {};
+                totalItemsCount = 0;
+                
+                items.forEach(item => {
+                    itemsPurchased[item.id] = 0;
+                    document.querySelector(`.item-count[data-id="${item.id}"]`).textContent = '0';
+                    document.querySelector(`.sell-btn[data-id="${item.id}"]`).disabled = true;
+                });
+                
+                updateMoneyDisplay();
+                document.getElementById('receipt-modal').classList.add('hidden');
+            });
+            
+            // Initialize game
+            createItemsGrid();
+            updateMoneyDisplay();
+            
+            // Close modal when clicking outside
+            document.getElementById('receipt-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

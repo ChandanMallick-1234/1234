@@ -1,222 +1,276 @@
-<!DOCTYPE html>
-<html lang="bn">
+ <!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>আমার গেমিং ওয়েবসাইট - টিক-ট্যাক-টো</title>
+    <title>Science Game Hub</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --primary: #6a1b9a;
+            --secondary: #26a69a;
+            --accent: #ffab00;
+            --dark: #121212;
+            --light: #f5f5f5;
         }
         
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            background-color: #f0f0f0;
-            color: #333;
+            padding: 0;
+            background-color: var(--dark);
+            color: var(--light);
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
         h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
+            margin: 0;
+            font-size: 2.2rem;
         }
         
-        .game-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }
         
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .cell {
-            aspect-ratio: 1/1;
-            background-color: #fff;
-            border: 2px solid #2c3e50;
-            border-radius: 10px;
+        .game-nav {
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .game-nav button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            margin: 0 0.5rem;
             cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
             transition: all 0.3s ease;
         }
         
-        .cell:hover {
-            background-color: #e0e0e0;
+        .game-nav button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
         }
         
-        .cell.x {
-            color: #e74c3c;
+        .game-nav button.active {
+            background-color: var(--accent);
+            color: var(--dark);
         }
         
-        .cell.o {
-            color: #3498db;
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 2rem;
+            min-height: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         
-        .status {
-            text-align: center;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+        .game-section {
+            display: none;
+        }
+        
+        .game-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .game-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-title {
+            color: var(--accent);
+            margin-top: 0;
+        }
+        
+        .play-btn {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--dark);
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            text-decoration: none;
             font-weight: bold;
-            height: 30px;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
         }
         
-        .controls {
-            display: flex;
-            justify-content: center;
+        .play-btn:hover {
+            background-color: #ffc400;
+            transform: scale(1.05);
         }
         
-        button {
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
         }
         
-        button:hover {
-            background-color: #1a252f;
-        }
-        
-        @media (max-width: 500px) {
-            .game-container {
-                padding: 10px;
+        @media (max-width: 768px) {
+            .game-nav {
+                flex-direction: column;
+                align-items: center;
             }
             
-            .cell {
-                font-size: 2.5rem;
-            }
-            
-            .status {
-                font-size: 1.2rem;
+            .game-nav button {
+                margin: 0.3rem 0;
+                width: 80%;
             }
         }
     </style>
 </head>
 <body>
-    <h1>টিক-ট্যাক-টো গেম</h1>
+    <header>
+        <h1>HtmlScienceGame</h1>
+        <p>Learn while having fun!</p>
+    </header>
     
-    <div class="game-container">
-        <div class="status" id="status">X-এর পালা</div>
-        
-        <div class="game-board" id="board">
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
+    <div class="container">
+        <div class="game-nav">
+            <button class="active" onclick="showGame('periodic')">Periodic Table Quiz</button>
+            <button onclick="showGame('flappy')">Flappy Element</button>
+            <button onclick="showGame('tictactoe')">Element Tic Tac Toe</button>
+            <button onclick="showGame('Money')">Money</button>
+            <button onclick="showGame('Snake')">Snake</button>
         </div>
         
-        <div class="controls">
-            <button id="reset">গেম রিসেট করুন</button>
+        <div class="game-container">
+            <!-- Periodic Table Game Section -->
+            <div id="periodic" class="game-section active">
+                <div class="game-card">
+                    <h2 class="game-title">Periodic Table Challenge</h2>
+                    <p>Test your knowledge of chemical elements with this interactive quiz. Identify elements by their symbol, atomic number, or properties.</p>
+                    <a href="Priodic Table.html" class="play-btn">Play Now</a>
+                </div>
+                
+                <div class="game-card">
+                    <h3>How to Play:</h3>
+                    <ul>
+                        <li>Identify elements based on clues</li>
+                        <li>Earn points for correct answers</li>
+                        <li>Compete with friends for high scores</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Flappy Bird Game Section -->
+            <div id="flappy" class="game-section">
+                <div class="game-card">
+                    <h2 class="game-title">Flappy Element</h2>
+                    <p>The classic Flappy Bird game with a scientific twist! Navigate through pipes labeled with chemical element symbols.</p>
+                    <a href="Flappy  Bird.html" class="play-btn">Play Now</a>
+                </div>
+                
+                <div class="game-card">
+                    <h3>Game Features:</h3>
+                    <ul>
+                        <li>Learn element symbols while playing</li>
+                        <li>Increasing difficulty as you progress</li>
+                        <li>Special power-ups based on element properties</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Tic Tac Toe Game Section -->
+            <div id="tictactoe" class="game-section">
+                <div class="game-card">
+                    <h2 class="game-title">Element Tic Tac Toe</h2>
+                    <p>A chemistry-themed version of the classic game. Play as metals vs. nonmetals in this strategic battle!</p>
+                    <a href="Tictactoe.html" class="play-btn">Play Now</a>
+                </div>
+                
+                <div class="game-card">
+                    <h3>Game Modes:</h3>
+                    <ul>
+                        <li>Player vs Computer</li>
+                        <li>Player vs Player</li>
+                        <li>Element trivia bonus rounds</li>
+                    </ul>
+                </div>
+            </div>
+        <!-- Tic Tac Toe Game Section -->
+        <div id="Money" class="game-section">
+            <div class="game-card">
+                <h2 class="game-title">Money</h2>
+                <p>A chemistry-themed version of the Money game. Play as metals vs. nonmetals in this strategic battle!</p>
+                <a href="Game.html" class="play-btn">Play Now</a>
+            </div>
+            
+            <div class="game-card">
+                <h3>Game Modes:</h3>
+                <ul>
+                    <li>Spent Money</li>
+                    <li>Store</li>
+                    <li>Buy Items</li>
+                </ul>
+            </div>
         </div>
+ <!-- Tic Tac Toe Game Section -->
+ <div id="Snake" class="game-section">
+    <div class="game-card">
+        <h2 class="game-title">Snake</h2>
+        <p>A chemistry-themed version of the Snake game. Play as metals vs. nonmetals in this strategic battle!</p>
+        <a href="Snake.html" class="play-btn">Play Now</a>
     </div>
+    
+    <div class="game-card">
+        <h3>Game Modes:</h3>
+        <ul>
+            <li>Keyboards key controll</li>
+            <li>Apple</li>
+            <li>Big Snake</li>
+        </ul>
+    </div>
+</div>
+
+    
+    <footer>
+        <p>&copy; 2023 Science Game Hub | Educational Games for Chemistry Enthusiasts</p>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const board = document.getElementById('board');
-            const cells = document.querySelectorAll('.cell');
-            const status = document.getElementById('status');
-            const resetButton = document.getElementById('reset');
-            
-            let currentPlayer = 'X';
-            let gameState = ['', '', '', '', '', '', '', '', ''];
-            let gameActive = true;
-            
-            const winningConditions = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-                [0, 4, 8], [2, 4, 6]             // diagonals
-            ];
-            
-            // Handle cell click/touch
-            function handleCellClick(e) {
-                const clickedCell = e.target;
-                const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
-                
-                if (gameState[clickedCellIndex] !== '' || !gameActive) {
-                    return;
-                }
-                
-                gameState[clickedCellIndex] = currentPlayer;
-                clickedCell.classList.add(currentPlayer.toLowerCase());
-                clickedCell.textContent = currentPlayer;
-                
-                checkResult();
-            }
-            
-            // Check for win or draw
-            function checkResult() {
-                let roundWon = false;
-                
-                for (let i = 0; i < winningConditions.length; i++) {
-                    const [a, b, c] = winningConditions[i];
-                    
-                    if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') {
-                        continue;
-                    }
-                    
-                    if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
-                        roundWon = true;
-                        break;
-                    }
-                }
-                
-                if (roundWon) {
-                    status.textContent = `${currentPlayer} জিতেছে!`;
-                    gameActive = false;
-                    return;
-                }
-                
-                if (!gameState.includes('')) {
-                    status.textContent = 'খেলা ড্র!';
-                    gameActive = false;
-                    return;
-                }
-                
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                status.textContent = `${currentPlayer}-এর পালা`;
-            }
-            
-            // Reset game
-            function resetGame() {
-                currentPlayer = 'X';
-                gameState = ['', '', '', '', '', '', '', '', ''];
-                gameActive = true;
-                status.textContent = `${currentPlayer}-এর পালা`;
-                
-                cells.forEach(cell => {
-                    cell.textContent = '';
-                    cell.classList.remove('x', 'o');
-                });
-            }
-            
-            // Event listeners
-            cells.forEach(cell => {
-                cell.addEventListener('click', handleCellClick);
-                cell.addEventListener('touchstart', handleCellClick, { passive: true });
+        function showGame(gameId) {
+            // Hide all game sections
+            document.querySelectorAll('.game-section').forEach(section => {
+                section.classList.remove('active');
             });
             
-            resetButton.addEventListener('click', resetGame);
-        });
+            // Show selected game section
+            document.getElementById(gameId).classList.add('active');
+            
+            // Update active button
+            document.querySelectorAll('.game-nav button').forEach(button => {
+                button.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
     </script>
 </body>
 </html>

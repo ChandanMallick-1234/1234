@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0 #000;
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 95%;
+            max-width: 1200px;
+            margin-bottom: 30px;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            background-image: url('https://iili.io/3zsQ6Wx.jpg');
+            background-size: cover;
+            border: 5px solid #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #bird {
+            position: absolute;
+            top: 50%;
+            left: 50px;
+            width: 40px;
+            height: 40px;
+            background-image: url('https://iili.io/3zLkxtt.png');
+            background-size: cover;
+            display: none;
+            z-index: 10;
+        }
+
+        .obstacle {
+            position: absolute;
+            width: 60px;
+            background-image: url('https://iili.io/3zsQ8J9.jpg');
+            background-size: cover;
+        }
+
+        .top {
+            top: 0;
+            transform: rotate(180deg);
+        }
+
+        .bottom {
+            bottom: 0;
+        }
+
+        .score-container {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 5;
+        }
+
+        #score, #high-score {
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 0 #000;
+            display: none;
+            margin: 5px 0;
+        }
+
+        .controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 5;
+        }
+
+        #start-button, #restart-button {
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #C41C00;
+            transition: all 0.1s;
+            margin: 10px 0;
+        }
+
+        #start-button:hover, #restart-button:hover {
+            background-color: #FF7043;
+        }
+
+        #start-button:active, #restart-button:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #C41C00;
+        }
+
+        #restart-button {
+            display: none;
+        }
+
+        .info-panel {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 3px solid #000;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .info-panel h2 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .info-panel p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+        }
+
+        .leaderboard ol {
+            padding-left: 20px;
+        }
+
+        .leaderboard li {
+            margin-bottom: 8px;
+        }
+
+        footer {
+            width: 100%;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.7);
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .game-container {
+                height: 500px;
+            }
+            
+            .info-panel {
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FLAPPY BIRD ADVENTURE</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="game-container">
+            <div id="bird"></div>
+            <div id="obstacles"></div>
+            <div class="score-container">
+                <div id="score">Score: 0</div>
+                <div id="high-score">High Score: 0</div>
+            </div>
+            <div class="controls">
+                <button id="start-button">START GAME</button>
+                <button id="restart-button">PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h2>HOW TO PLAY</h2>
+            <p>Click or tap to make the bird fly. Avoid the pipes and try to get the highest score!</p>
+            
+            <div class="leaderboard">
+                <h2>LEADERBOARD</h2>
+                <ol id="leaderboard">
+                    <li>Player1 - 50</li>
+                    <li>Player2 - 45</li>
+                    <li>Player3 - 40</li>
+                </ol>
+            </div>
+            
+            <h2>ABOUT</h2>
+            <p>Created with HTML, CSS and JavaScript. Inspired by the classic Flappy Bird game.</p>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2023 Flappy Bird Adventure
+    </footer>
+
+    <script>
+        const bird = document.getElementById("bird");
+        const gameContainer = document.querySelector(".game-container");
+        const obstacles = document.getElementById("obstacles");
+        const scoreElement = document.getElementById("score");
+        const highScoreElement = document.getElementById("high-score");
+        const startButton = document.getElementById("start-button");
+        const restartButton = document.getElementById("restart-button");
+        const leaderboard = document.getElementById("leaderboard");
+
+        let birdTop = 250;
+        let gravity = 2;
+        let jumpStrength = -50;
+        let gameHeight = gameContainer.clientHeight;
+        let gameWidth = gameContainer.clientWidth;
+        let obstacleWidth = 60;
+        let obstacleGap = 200;
+        let obstacleSpeed = 5;
+        let score = 0;
+        let gameOver = false;
+        let gameStarted = false;
+        let passedGap = false;
+        let isJumping = false;
+
+        // Load high score from localStorage
+        let highScore = localStorage.getItem("highScore") || 0;
+        highScoreElement.textContent = "High Score: " + highScore;
+
+        // Make the bird fall
+        function applyGravity() {
+            if (gameStarted && !gameOver) {
+                birdTop += gravity;
+                bird.style.top = birdTop + "px";
+                checkCollision();
+            }
+        }
+
+        // Make the bird jump
+        function jump() {
+            if (gameStarted && !gameOver && !isJumping) {
+                isJumping = true;
+                birdTop += jumpStrength;
+                bird.style.top = birdTop + "px";
+                
+                // Reset jumping flag after a short delay
+                setTimeout(() => {
+                    isJumping = false;
+                }, 100);
+            }
+        }
+
+        // Create obstacles
+        function createObstacle() {
+            if (gameStarted && !gameOver) {
+                let obstacleTop = Math.random() * (gameHeight - obstacleGap - 100) + 50;
+                let obstacleBottom = gameHeight - obstacleTop - obstacleGap;
+
+                let topObstacle = document.createElement("div");
+                topObstacle.className = "obstacle top";
+                topObstacle.style.height = obstacleTop + "px";
+                topObstacle.style.left = gameWidth + "px";
+
+                let bottomObstacle = document.createElement("div");
+                bottomObstacle.className = "obstacle bottom";
+                bottomObstacle.style.height = obstacleBottom + "px";
+                bottomObstacle.style.left = gameWidth + "px";
+
+                obstacles.appendChild(topObstacle);
+                obstacles.appendChild(bottomObstacle);
+
+                moveObstacles(topObstacle, bottomObstacle);
+            }
+        }
+
+        // Move obstacles
+        function moveObstacles(topObstacle, bottomObstacle) {
+            let obstacleInterval = setInterval(() => {
+                if (gameOver || !gameStarted) {
+                    clearInterval(obstacleInterval);
+                    return;
+                }
+
+                let topObstacleLeft = parseFloat(topObstacle.style.left);
+                let bottomObstacleLeft = parseFloat(bottomObstacle.style.left);
+
+                topObstacle.style.left = topObstacleLeft - obstacleSpeed + "px";
+                bottomObstacle.style.left = bottomObstacleLeft - obstacleSpeed + "px";
+
+                // Check if the bird has passed through the gap
+                if (!passedGap && bird.offsetLeft > topObstacleLeft + obstacleWidth) {
+                    passedGap = true;
+                    score++;
+                    scoreElement.textContent = "Score: " + score;
+
+                    // Update high score if current score is higher
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem("highScore", highScore);
+                        highScoreElement.textContent = "High Score: " + highScore;
+                        updateLeaderboard(score);
+                    }
+                }
+
+                // Remove obstacles when they go off-screen
+                if (topObstacleLeft + obstacleWidth < 0) {
+                    obstacles.removeChild(topObstacle);
+                    obstacles.removeChild(bottomObstacle);
+                    passedGap = false;
+                }
+
+                checkCollision();
+            }, 20);
+        }
+
+        // Check for collisions
+        function checkCollision() {
+            let birdRect = bird.getBoundingClientRect();
+            let obstacleRects = document.querySelectorAll(".obstacle");
+
+            for (let obstacle of obstacleRects) {
+                let obstacleRect = obstacle.getBoundingClientRect();
+
+                if (
+                    birdRect.left < obstacleRect.right &&
+                    birdRect.right > obstacleRect.left &&
+                    birdRect.top < obstacleRect.bottom &&
+                    birdRect.bottom > obstacleRect.top
+                ) {
+                    gameOver = true;
+                    endGame();
+                }
+            }
+
+            // Check if bird hits the ground or ceiling
+            if (birdRect.bottom > gameHeight || birdRect.top < 0) {
+                gameOver = true;
+                endGame();
+            }
+        }
+
+        // Update leaderboard (simplified for demo)
+        function updateLeaderboard(newScore) {
+            // In a real app, you would save this to a database
+            let items = leaderboard.getElementsByTagName("li");
+            let newEntry = `You - ${newScore}`;
+            
+            // Simple demo - just update the first position
+            if (items.length > 0) {
+                items[0].textContent = newEntry;
+            }
+        }
+
+        // End the game
+        function endGame() {
+            restartButton.style.display = "block";
+            updateLeaderboard(score);
+        }
+
+        // Start the game
+        startButton.addEventListener("click", () => {
+            gameStarted = true;
+            startButton.style.display = "none";
+            bird.style.display = "block";
+            scoreElement.style.display = "block";
+            highScoreElement.style.display = "block";
+            document.querySelectorAll(".obstacle").forEach(obstacle => obstacle.style.display = "block");
+        });
+
+        // Restart the game
+        restartButton.addEventListener("click", () => {
+            location.reload();
+        });
+
+        // Handle user input
+        document.addEventListener("click", (e) => {
+            if (e.target !== startButton && e.target !== restartButton) {
+                jump();
+            }
+        });
+
+        document.addEventListener("touchstart", (e) => {
+            if (e.target !== startButton && e.target !== restartButton) {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        // Handle keyboard controls
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space" || e.key === " ") {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        // Game loop
+        setInterval(applyGravity, 20);
+        setInterval(createObstacle, 2000);
+
+        // Responsive adjustments
+        window.addEventListener("resize", () => {
+            gameHeight = gameContainer.clientHeight;
+            gameWidth = gameContainer.clientWidth;
+        });
+    </script>
+</body>
+</html>
